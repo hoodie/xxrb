@@ -1,4 +1,3 @@
-#!/usr/bin/ruby
 
 require 'net/http'
 require 'uri'
@@ -9,7 +8,7 @@ include Jabber
 
 
 #inspired by xmpp4r example client
-class JabberBot
+class Xxrb
 
 	def initialize
 		@cli_cmds  = {}
@@ -50,16 +49,3 @@ class JabberBot
 
 end
 
-
-do_help = RbCmd.new(:help, :cli)
-def do_help.action
-	if @args == "me"
-		result = "May I be of some assistence?"
-	else
-		result = "This is meant to help you"
-	end
-end
-
-bot = JabberBot.new
-bot.add_cmd(do_help)
-bot.start_cli
