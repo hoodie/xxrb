@@ -45,7 +45,7 @@ class Xxrb
 		unless pool[command.to_sym] == nil
 			action = lambda { pool[command.to_sym].execute(args) }
 		else
-			action = proc { ' > command "'+command+'" not found' }
+			action = proc { 'command "'+command+'" not found' }
 		end
 
 	end
@@ -57,7 +57,7 @@ class Xxrb
 			line = gets.strip!
 
 			quit = true if line == 'quit'
-			action = take_cmd(@xmpp_cmds, line)
+			action = take_cmd(@cli_cmds, line)
 			unless quit
 				puts action.call
 			end
@@ -68,14 +68,16 @@ class Xxrb
 		if @client
 			@client.add_message_callback { |message|
 				unless message.type == :error
-					puts message.from.to_s +": "+	message.body
 					action = take_cmd(@xmpp_cmds, message.body)
-					puts action.call
+					output = action.call
+					res = Message.new(message.from, output)
+					res.type = message.type
+					@client.send(res)
 				end
 			}
-			result = " > listening"
+			result = "listening for commands from xmpp"
 		else
-			result = " > not yet connected, please connect first"
+			result = "not yet connected, please connect first"
 		end
 	end
 
