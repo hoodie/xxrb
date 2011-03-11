@@ -1,0 +1,6 @@
+This is a little Project of mine I started in order to learn ruby.
+It will (if I finish it) of two interface:
+	* a command line interface for setup and settings
+	* a xmpp interface for services
+
+Commands will have a very unix-like feel : commandname [args*]
