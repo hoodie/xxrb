@@ -8,10 +8,14 @@ bot = Xxrb.new
 
 	cli_help = RbCmd.new(:help, :cli)
 	def cli_help.action
-		if @args == "me"
-			result = "May I be of some assistence?"
+		if @args.nil?
+			result = "no help here"
 		else
-			result = "This is meant to help you"
+			unless @bot.cli_cmds[@args.to_sym] == nil
+				result = @bot.cli_cmds[@args.to_sym].help
+			else
+				result = "There is no such command"
+			end
 		end
 	end
 

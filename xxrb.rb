@@ -15,6 +15,14 @@ class Xxrb
 		@xmpp_cmds = {}
 	end
 
+	def cli_cmds
+		@cli_cmds
+	end
+
+	def xmpp_cmds
+		@xmpp_cmds
+	end
+
 	def add_cmd(cmd)
 		if cmd.name == "name"
 			puts 'can\'t overwrite "exit"'
@@ -31,21 +39,34 @@ class Xxrb
 
 	def hello
 		result = "Hello, I am a Jabber Bot. "
-		@cmds = "I offer the following functionality:\nquit"
-		@cli_cmds.keys.each do |cmd|
-			@cmds += ', ' + cmd.to_s 
+		result += "I offer the following functionality:\n"
+		result += cmds(@cli_cmds)
+	end
+
+	def cmds(pool)
+		cmds = ""
+		pool.keys.each do |cmd|
+			unless cmds == ""
+				cmds += ', ' + cmd.to_s 
+			else
+				cmds += cmd.to_s 
+			end
 		end
-		result += @cmds
+		cmds += " and quit!" if pool == @cli_cmds
+		result = cmds
 	end
 
 	def take_cmd(pool, line)
 		
-		command, args = line.split(' ', 2)
-		
+		command, args = line.split(' ', 2) unless line.nil? 
+		if command	
 		unless pool[command.to_sym] == nil
 			action = lambda { pool[command.to_sym].execute(args) }
 		else
 			action = proc { 'command "'+command+'" not found' }
+		end
+		else
+			action = proc {}
 		end
 
 	end
@@ -59,7 +80,8 @@ class Xxrb
 			quit = true if line == 'quit'
 			action = take_cmd(@cli_cmds, line)
 			unless quit
-				puts action.call
+				output = action.call
+				puts output unless output.nil?
 			end
 		end
 	end

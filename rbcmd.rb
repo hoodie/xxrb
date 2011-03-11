@@ -30,6 +30,10 @@ class RbCmd
 		result = "nothing set yet"
 	end
 
+	def help
+		result = @name.to_s + " has no help yet"
+	end
+
 	def type
 		result = @type
 	end
