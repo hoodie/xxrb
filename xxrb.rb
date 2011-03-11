@@ -60,6 +60,7 @@ class Xxrb
 
 	def connect(jid, password)
 		@jid, @password = JID.new(jid), password
+		@jid.resource=("xxrb") unless @jid.resource
 		@client = Client.new(@jid)
 		@client.connect
 		@client.auth(@password)

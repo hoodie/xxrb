@@ -24,7 +24,7 @@ bot = Xxrb.new
 	def do_connect.action
 		j,p = @args.split(' ',2)
 		@bot.connect(j,p) if @args 
-		@bot.presence_online("xxrb")
+		@bot.presence_online("I'm on and off for testing")
 		result = "now we should be connected"
 	end
  
