@@ -4,7 +4,7 @@ require 'net/http'
 require 'uri'
 require 'xmpp4r/client'
 require 'json/pure'
-require 'rubotcmd'
+require 'rbcmd'
 include Jabber
 
 
@@ -49,7 +49,7 @@ class JabberBot
 end
 
 
-do_help = RbCommand.new(:help, :cli)
+do_help = RbCmd.new(:help, :cli)
 def do_help.action
 	result = "May I be of some assistence?"
 

@@ -1,4 +1,4 @@
-class RbCommand
+class RbCmd
 	def initialize(n, t = :cli)
 		@name = n
 		@type = t
