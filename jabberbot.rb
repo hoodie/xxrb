@@ -20,6 +20,14 @@ bot = Xxrb.new
 		@bot.hello
 	end
 
+	do_connect = RbCmd.new(:connect, :cli)
+	def do_connect.action
+		j,p = @args.split(' ',2)
+		@bot.connect(j,p) if @args 
+		@bot.presence_online("xxrb")
+		result = "now we should be connected"
+	end
+ 
 
 
 # Here we add our commands to the bot
@@ -27,5 +35,7 @@ bot = Xxrb.new
 
 	bot.add_cmd(do_help)
 	bot.add_cmd(do_hello)
+	bot.add_cmd(do_connect)
+
 
 bot.start_cli

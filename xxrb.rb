@@ -62,6 +62,13 @@ class Xxrb
 		@jid, @password = JID.new(jid), password
 		@client = Client.new(@jid)
 		@client.connect
+		@client.auth(@password)
+	end
+
+	def presence_online(message = nil)
+		presence = Presence.new
+		presence.set_status(message) if message
+		@client.send(presence)
 	end
 
 
