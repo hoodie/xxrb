@@ -25,7 +25,12 @@ bot = Xxrb.new
 		j,p = @args.split(' ',2)
 		@bot.connect(j,p) if @args 
 		@bot.presence_online("I'm on and off for testing")
-		result = "now we should be connected"
+		result = " > now we should be connected"
+	end
+
+	do_listen = RbCmd.new(:listen, :cli)
+	def do_listen.action
+		result = @bot.start_xmpp_interface
 	end
  
 
@@ -36,6 +41,7 @@ bot = Xxrb.new
 	bot.add_cmd(do_help)
 	bot.add_cmd(do_hello)
 	bot.add_cmd(do_connect)
+	bot.add_cmd(do_listen)
 
 
 bot.start_cli

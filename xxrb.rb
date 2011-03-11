@@ -37,24 +37,45 @@ class Xxrb
 		end
 		result += @cmds
 	end
+
+	def take_cmd(pool, line)
+		
+		command, args = line.split(' ', 2)
+		
+		unless pool[command.to_sym] == nil
+			action = lambda { pool[command.to_sym].execute(args) }
+		else
+			action = proc { ' > command "'+command+'" not found' }
+		end
+
+	end
 	
 	def start_cli
 		puts hello
 		quit = false
 		while not quit
 			line = gets.strip!
+
 			quit = true if line == 'quit'
-
-			command, args = line.split(' ', 2)
-
-			unless @cli_cmds[command.to_sym] == nil
-				action = lambda { puts @cli_cmds[command.to_sym].execute(args) }
-			else
-				action = lambda { puts ' > command "'+command+'" not found' }
-			end
-
+			action = take_cmd(@xmpp_cmds, line)
 			unless quit
-				action.call end
+				puts action.call
+			end
+		end
+	end
+
+	def start_xmpp_interface
+		if @client
+			@client.add_message_callback { |message|
+				unless message.type == :error
+					puts message.from.to_s +": "+	message.body
+					action = take_cmd(@xmpp_cmds, message.body)
+					puts action.call
+				end
+			}
+			result = " > listening"
+		else
+			result = " > not yet connected, please connect first"
 		end
 	end
 
