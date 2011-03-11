@@ -1,8 +1,4 @@
-
-require 'net/http'
-require 'uri'
 require 'xmpp4r/client'
-require 'json/pure'
 require 'rbcmd'
 include Jabber
 
@@ -90,7 +86,7 @@ class Xxrb
 		if @client
 			@client.add_message_callback { |message|
 				unless message.type == :error
-					action = take_cmd(@xmpp_cmds, message.body)
+					action = take_cmd(@xmpp_cmds, message.body.strip)
 					output = action.call
 					res = Message.new(message.from, output)
 					res.type = message.type

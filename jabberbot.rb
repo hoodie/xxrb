@@ -9,7 +9,7 @@ bot = Xxrb.new
 	cli_help = RbCmd.new(:help, :cli)
 	def cli_help.action
 		if @args.nil?
-			result = "no help here"
+			result = @bot.cmds(@bot.cli_cmds)
 		else
 			unless @bot.cli_cmds[@args.to_sym] == nil
 				result = @bot.cli_cmds[@args.to_sym].help
@@ -36,6 +36,27 @@ bot = Xxrb.new
 	def cli_listen.action
 		result = @bot.start_xmpp_interface
 	end
+
+	xmpp_help = RbCmd.new(:help, :xmpp)
+	def cli_help.action
+		if @args.nil?
+			result = @bot.cmds(@bot.cli_cmds)
+		else
+			unless @bot.xmpp_cmds[@args.to_sym] == nil
+				result = @bot.xmpp_cmds[@args.to_sym].help
+			else
+				result = "There is no such command"
+			end
+		end
+	end
+
+	xmpp_hello = RbCmd.new(:hello, :xmpp)
+	def xmpp_hello.action
+		result = "I'm not actually " + @args + " but his evil twin"
+	end
+	def xmpp_hello.help
+		result = '"hello" is only the first of many cool features'
+	end
  
 
 
@@ -46,6 +67,9 @@ bot = Xxrb.new
 	bot.add_cmd(cli_hello)
 	bot.add_cmd(cli_connect)
 	bot.add_cmd(cli_listen)
+
+	bot.add_cmd(xmpp_hello)
+	bot.add_cmd(xmpp_help)
 
 
 bot.start_cli
