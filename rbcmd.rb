@@ -4,6 +4,11 @@ class RbCmd
 		@type = t
 	end
 
+	def execute(args)
+		@args = args
+		result = action
+	end
+
 	def action
 		result = "nothing set yet"
 	end

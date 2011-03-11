@@ -35,10 +35,12 @@ class JabberBot
 			line = gets.strip!
 			quit = true if line == 'quit'
 
-			unless @cli_cmds[line.to_sym] == nil
-				action = lambda { puts @cli_cmds[line.to_sym].action }
+			command, args = line.split(' ', 2)
+
+			unless @cli_cmds[command.to_sym] == nil
+				action = lambda { puts @cli_cmds[command.to_sym].execute(args) }
 			else
-				action = lambda { puts "nothing found" }
+				action = lambda { puts ' > command "'+command+'" not found' }
 			end
 
 			unless quit
@@ -51,8 +53,11 @@ end
 
 do_help = RbCmd.new(:help, :cli)
 def do_help.action
-	result = "May I be of some assistence?"
-
+	if @args == "me"
+		result = "May I be of some assistence?"
+	else
+		result = "This is meant to help you"
+	end
 end
 
 bot = JabberBot.new
