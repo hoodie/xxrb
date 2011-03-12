@@ -2,6 +2,9 @@
 
 require 'xxrb'
 require 'yaml'
+require 'json/pure'
+require 'net/http'
+require 'uri'
 
 bot = Xxrb.new
 
@@ -74,7 +77,33 @@ bot = Xxrb.new
 	def xmpp_hello.help
 		result = '"hello" is only the first of many cool features'
 	end
+	
+	xmpp_dvb = RbCmd.new(:dvb, :xmpp)
+	def xmpp_dvb.action
+		if @args
+			url = URI.parse("http://widgets.vvo-online.de/abfahrtsmonitor/Abfahrten.do?ort=Dresden&hst="+ URI.escape(@args) +"&vz=0")
+			#url = URI.parse("http://hoodie.de/logger.php?log=show")
+			result = Net::HTTP.start(url.host, url.port) { |http|
+				http.get(url.path + "?" + url.query,{'User-Agent' => 'not empty'})
+			}
+			parsed = JSON::parse(result.body)
+			list = parsed.map do |line|
+				out = "" unless out
+				out += line[2] +"\t"+  line[0] +"\t"+ line[1] + "\n"
+			end
+			result = "Results for "+@args+":\n" + list.to_s
+		else
+			result = help
+		end
+	end
+	def xmpp_dvb.help
+		result = "dvb - lists all upcomming traffic for a given tram or bus station in Dresden\n example \"dvb slub\" "
+	end
  
+	cli_status = RbCmd.new(:status, :cli)
+	def cli_status.action
+		@bot.presence_online(@args)
+	end
 
 
 # Here we add our commands to the bot
@@ -85,9 +114,11 @@ bot = Xxrb.new
 	bot.add_cmd(cli_connect)
 	bot.add_cmd(cli_quickconnect)
 	bot.add_cmd(cli_listen)
+	bot.add_cmd(cli_status)
 
 	bot.add_cmd(xmpp_hello)
 	bot.add_cmd(xmpp_help)
+	bot.add_cmd(xmpp_dvb)
 
 
 bot.start_cli

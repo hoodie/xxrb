@@ -92,8 +92,9 @@ class Xxrb
 		if @client
 			@client.add_message_callback { |message|
 				unless message.type == :error
+					puts message.from.to_s+" \""+message.body.strip+"\""
 					action = take_cmd(@xmpp_cmds, message.body.strip)
-					output = action.call
+					output = action.call.to_s
 					res = Message.new(message.from, output)
 					res.type = message.type
 					@client.send(res)
