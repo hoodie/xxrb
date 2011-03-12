@@ -23,11 +23,14 @@ bot = Xxrb.new
 	end
 
 
+	# Repeats welcoming message
 	cli_hello = RbCmd.new(:hello, :cli)
 	def cli_hello.action
 		@bot.hello
 	end
 
+	# Offers Manual connecting
+	# "connect [user@server/resource password]"
 	cli_connect = RbCmd.new(:connect, :cli)
 	def cli_connect.action
 		if @args
@@ -36,19 +39,20 @@ bot = Xxrb.new
 		else
 			@bot.connect
 		end
-
 		@bot.presence_online("I'm on and off for testing")
 		result = "> now we should be connected"
 		result += "\n" + @bot.start_xmpp_interface
 	end
 
 
+	# Starts listening to xmpp input
 	cli_listen = RbCmd.new(:listen, :cli)
 	def cli_listen.action
 		result = @bot.start_xmpp_interface
 	end
 
-# Help for XMPP Commands
+
+	# Help for XMPP Commands
 	xmpp_help = RbCmd.new(:help, :xmpp)
 	def xmpp_help.action
 		if @args.nil?
@@ -63,7 +67,7 @@ bot = Xxrb.new
 	end
 
 
-# Original greeting function
+	# Original greeting function
 	xmpp_hello = RbCmd.new(:hello, :xmpp)
 	def xmpp_hello.action
 		if @args
@@ -120,6 +124,7 @@ bot = Xxrb.new
 	bot.add_cmd(xmpp_hello)
 	bot.add_cmd(xmpp_help)
 	bot.add_cmd(xmpp_dvb)
+
 
 
 bot.start_cli

@@ -12,6 +12,7 @@ class Xxrb
 		@xmpp_cmds = {}
 	end
 
+	# begin of getters
 	def cli_cmds
 		@cli_cmds
 	end
@@ -26,7 +27,10 @@ class Xxrb
 		end
 		@client
 	end
+	# end of getters
 
+
+	# register new commands
 	def add_cmd(cmd)
 		if cmd.name == "name"
 			puts 'can\'t overwrite "exit"'
@@ -41,12 +45,16 @@ class Xxrb
 		end
 	end
 
+
+	# welcoming message for cli users
 	def hello
 		result = "Hello, I am a Jabber Bot. "
 		result += "I offer the following functionality:\n"
 		result += cmds(@cli_cmds)
 	end
 
+
+	# List all commands from a given pool
 	def cmds(pool)
 		cmds = ""
 		pool.keys.each do |cmd|
@@ -60,6 +68,8 @@ class Xxrb
 		result = cmds
 	end
 
+
+	# Parse commandline input and deligate to either xmpp_cmds or cli_cmds
 	def take_cmd(pool, line)
 		command, args = line.split(' ', 2) unless line.nil? 
 		if command	
@@ -71,9 +81,10 @@ class Xxrb
 		else
 			action = proc {}
 		end
-
 	end
+
 	
+	# Begin responding to commandline input
 	def start_cli
 		puts hello
 		quit = false
@@ -89,6 +100,8 @@ class Xxrb
 		end
 	end
 
+	
+	# Begin responding to xmpp input
 	def start_xmpp_interface
 		if @client
 			@client.add_message_callback { |message|
@@ -105,12 +118,14 @@ class Xxrb
 			@client.add_iq_callback { |iq|
 				puts iq
 			}
-			result = "listening for commands from xmpp"
+			result = " > listening for commands from xmpp"
 		else
-			result = "not yet connected, please connect first"
+			result = "> not yet connected, please connect first"
 		end
 	end
 
+
+	# Connect either to given jid or to jid from config
 	def connect(jid = nil, password = nil)
 		unless jid.nil? and password.nil?
 			@jid, @password = JID.new(jid), password
