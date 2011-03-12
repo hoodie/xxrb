@@ -94,6 +94,7 @@ class Xxrb
 			@client.add_message_callback { |message|
 				unless message.type == :error
 					puts message.from.to_s+" \""+message.body.strip+"\""
+					puts "--------------------------------------------"
 					action = take_cmd(@xmpp_cmds, message.body.strip)
 					output = action.call.to_s
 					res = Message.new(message.from, output)
@@ -116,14 +117,13 @@ class Xxrb
 			@jid.resource=("xxrb") unless @jid.resource
 			@client = Client.new(@jid)
 			@client.connect
-			@client.auth_sasl(Jabber::SASL::Base.new,@password)
+			@client.auth(@password)
 		else
 			file = File.open('login.conf')
 			login = YAML::load(file)
 			file.close
 			connect(login['jid'],login['password'])
 		end
-		start_xmpp_interface
 	end
 
 	def presence_online(message = nil)
