@@ -5,7 +5,6 @@ require 'json/pure'
 require 'net/http'
 require 'uri'
 
-bot = Xxrb.new
 
 # Here we start defining new commands
 
@@ -33,14 +32,13 @@ bot = Xxrb.new
 	# "connect [user@server/resource password]"
 	cli_connect = RbCmd.new(:connect, :cli)
 	def cli_connect.action
-		if @args
+		result = if @args
 			j,p = @args.split(' ',2)
-			@bot.connect(j,p)
+			result = @bot.connect(j,p)
 		else
-			@bot.connect
+			result = @bot.connect
 		end
-		@bot.presence_online("I'm on and off for testing")
-		result = "> now we should be connected"
+		result += "\n" + @bot.status("I'm on and off for testing")
 		result += "\n" + @bot.start_xmpp_interface
 	end
 
@@ -108,23 +106,33 @@ bot = Xxrb.new
 	# TODO: help and args  (online, offline, dnd and so on)
 	cli_status = RbCmd.new(:status, :cli)
 	def cli_status.action
-		@bot.presence_online(@args)
+		@bot.status(@args)
 	end
 
 
-# Here we add our commands to the bot
-# Some will later be moved into the Xxrb class and become basic functionality
+	cli_roster = RbCmd.new(:roster, :cli)
+	def cli_roster.action
+		@bot.get_roster
+	end
+
+
+# Initialize the bot
+
+bot = Xxrb.new
+
+	# Here we add our commands to the bot
+	# Some will later be moved into the Xxrb class and become basic functionality
 
 	bot.add_cmd(cli_help)
 	bot.add_cmd(cli_hello)
 	bot.add_cmd(cli_connect)
 	bot.add_cmd(cli_listen)
 	bot.add_cmd(cli_status)
+	bot.add_cmd(cli_roster)
 
 	bot.add_cmd(xmpp_hello)
 	bot.add_cmd(xmpp_help)
 	bot.add_cmd(xmpp_dvb)
 
+	bot.start_cli
 
-
-bot.start_cli

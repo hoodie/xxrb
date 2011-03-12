@@ -1,0 +1,7 @@
+account:
+ jid: name@server/resource
+ password: secret
+
+options:
+ admins: ['admin@server']
+ autoauthorize: false

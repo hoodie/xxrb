@@ -1,4 +1,6 @@
-require 'xmpp4r/client'
+
+require 'xmpp4r'
+require 'xmpp4r/roster/helper/roster'
 require 'yaml'
 require 'rbcmd'
 include Jabber
@@ -10,9 +12,21 @@ class Xxrb
 	def initialize
 		@cli_cmds  = {}
 		@xmpp_cmds = {}
+		if File.exists?('config.yml')
+			file = File.open('config.yml')
+			conf = YAML::load(file)
+			file.close
+
+			@jid = conf['account']['jid']
+			@password = conf['account']['password']
+
+		else
+			puts "Error: no config file"
+			Thread.current.exit
+		end
 	end
 
-	# begin of getters
+	# Begin of getters
 	def cli_cmds
 		@cli_cmds
 	end
@@ -27,7 +41,16 @@ class Xxrb
 		end
 		@client
 	end
-	# end of getters
+	# End of getters
+
+
+	# Begin of command functions
+
+	# welcoming message for cli users
+	def hello
+		result = "Hello, I am a Jabber Bot. "
+		result += "\n" + cmds(@cli_cmds)
+	end
 
 
 	# register new commands
@@ -46,14 +69,6 @@ class Xxrb
 	end
 
 
-	# welcoming message for cli users
-	def hello
-		result = "Hello, I am a Jabber Bot. "
-		result += "I offer the following functionality:\n"
-		result += cmds(@cli_cmds)
-	end
-
-
 	# List all commands from a given pool
 	def cmds(pool)
 		cmds = ""
@@ -65,7 +80,7 @@ class Xxrb
 			end
 		end
 		cmds += " and quit!" if pool == @cli_cmds
-		result = cmds
+		result = " > Available commands: " + cmds
 	end
 
 
@@ -106,8 +121,7 @@ class Xxrb
 		if @client
 			@client.add_message_callback { |message|
 				unless message.type == :error
-					puts message.from.to_s+" \""+message.body.strip+"\""
-					puts "--------------------------------------------"
+					puts message.from.to_s+": \""+message.body.strip+"\""
 					action = take_cmd(@xmpp_cmds, message.body.strip)
 					output = action.call.to_s
 					res = Message.new(message.from, output)
@@ -120,10 +134,11 @@ class Xxrb
 			}
 			result = " > listening for commands from xmpp"
 		else
-			result = "> not yet connected, please connect first"
+			result = " > not yet connected, please connect first"
 		end
 	end
 
+	# Begin of XMPP Functions
 
 	# Connect either to given jid or to jid from config
 	def connect(jid = nil, password = nil)
@@ -134,19 +149,52 @@ class Xxrb
 			@client.connect
 			@client.auth(@password)
 		else
-			file = File.open('login.conf')
-			login = YAML::load(file)
-			file.close
-			connect(login['jid'],login['password'])
+			connect(@jid, @password)
+		end
+		result = " > connected to "+ @jid.domain
+	end
+
+	# lists roster
+	def get_roster
+		roster = Jabber::Roster::Helper.new(@client)
+		rosterthread = Thread.current
+		roster.add_query_callback do |iq|
+			rosterthread.wakeup
+		end
+		Thread.stop
+		@roster_string = ""
+		roster.groups.each do |group|
+			if group.nil?
+				@roster_string += "\n"
+			else
+				@roster_string += group.to_s + "\n"
+			end
+
+			roster.find_by_group(group).each do |item|
+				if item.iname
+					@roster_string += "- " + item.iname.to_s + "\n"
+				else
+					@roster_string += "- " + item.jid.to_s + "\n"
+				end
+			end
+		end
+
+		@roster_string
+	end
+
+	# TODO does not return status correctly
+	def status(message = nil)
+		if @client and message
+			presence = Presence.new
+			presence.set_status(message)
+			presence.set_show(:chat) 
+			@client.send(presence)
+			result = " > set status message to \"" + message + "\""
+		elsif @client
+			result = '"'+ @client.status.to_s + '"'
+		else
+			result = " > not yet connected"
 		end
 	end
-
-	def presence_online(message = nil)
-		presence = Presence.new
-		presence.set_status(message) if message
-		@client.send(presence)
-	end
-
-
 end
 
