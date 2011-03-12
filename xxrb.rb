@@ -19,6 +19,13 @@ class Xxrb
 		@xmpp_cmds
 	end
 
+	def client
+		unless @client
+			@client = Client.new
+		end
+		@client
+	end
+
 	def add_cmd(cmd)
 		if cmd.name == "name"
 			puts 'can\'t overwrite "exit"'
@@ -53,7 +60,6 @@ class Xxrb
 	end
 
 	def take_cmd(pool, line)
-		
 		command, args = line.split(' ', 2) unless line.nil? 
 		if command	
 		unless pool[command.to_sym] == nil

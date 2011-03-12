@@ -1,6 +1,7 @@
 #!/usr/bin/ruby
 
 require 'xxrb'
+require 'yaml'
 
 bot = Xxrb.new
 
@@ -29,12 +30,23 @@ bot = Xxrb.new
 		j,p = @args.split(' ',2)
 		@bot.connect(j,p) if @args 
 		@bot.presence_online("I'm on and off for testing")
-		result = " > now we should be connected"
+		result = "> now we should be connected"
+		result += "\n" + @bot.start_xmpp_interface
 	end
 
 	cli_listen = RbCmd.new(:listen, :cli)
 	def cli_listen.action
 		result = @bot.start_xmpp_interface
+	end
+
+	cli_quickconnect = RbCmd.new(:quick, :cli)
+	def cli_quickconnect.action
+		file = File.open('login')
+		login = YAML::load(file)
+		file.close
+		@bot.connect(login['jid'],login['password'])
+		@bot.presence_online("I'm on and off for testing")
+		result = login['jid']
 	end
 
 	xmpp_help = RbCmd.new(:help, :xmpp)
@@ -66,6 +78,7 @@ bot = Xxrb.new
 	bot.add_cmd(cli_help)
 	bot.add_cmd(cli_hello)
 	bot.add_cmd(cli_connect)
+	bot.add_cmd(cli_quickconnect)
 	bot.add_cmd(cli_listen)
 
 	bot.add_cmd(xmpp_hello)
