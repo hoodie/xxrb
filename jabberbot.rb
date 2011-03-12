@@ -41,18 +41,19 @@ bot = Xxrb.new
 
 	cli_quickconnect = RbCmd.new(:quick, :cli)
 	def cli_quickconnect.action
-		file = File.open('login')
+		file = File.open('login.conf')
 		login = YAML::load(file)
 		file.close
 		@bot.connect(login['jid'],login['password'])
 		@bot.presence_online("I'm on and off for testing")
+		@bot.start_xmpp_interface
 		result = login['jid']
 	end
 
 	xmpp_help = RbCmd.new(:help, :xmpp)
-	def cli_help.action
+	def xmpp_help.action
 		if @args.nil?
-			result = @bot.cmds(@bot.cli_cmds)
+			result = @bot.cmds(@bot.xmpp_cmds)
 		else
 			unless @bot.xmpp_cmds[@args.to_sym] == nil
 				result = @bot.xmpp_cmds[@args.to_sym].help
@@ -64,7 +65,11 @@ bot = Xxrb.new
 
 	xmpp_hello = RbCmd.new(:hello, :xmpp)
 	def xmpp_hello.action
-		result = "I'm not actually " + @args + " but his evil twin"
+		if @args
+			result = "I'm not actually " + @args + " but his evil twin"
+		else
+			result = "hello yourself"
+		end
 	end
 	def xmpp_hello.help
 		result = '"hello" is only the first of many cool features'

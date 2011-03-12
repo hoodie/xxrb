@@ -27,7 +27,7 @@ class RbCmd
 	end
 
 	def action
-		result = "nothing set yet"
+		result = "no action set yet"
 	end
 
 	def help

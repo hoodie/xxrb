@@ -99,6 +99,9 @@ class Xxrb
 					@client.send(res)
 				end
 			}
+			@client.add_iq_callback { |iq|
+				puts iq
+			}
 			result = "listening for commands from xmpp"
 		else
 			result = "not yet connected, please connect first"
