@@ -1,4 +1,5 @@
 require 'xmpp4r/client'
+require 'yaml'
 require 'rbcmd'
 include Jabber
 
@@ -109,12 +110,20 @@ class Xxrb
 		end
 	end
 
-	def connect(jid, password)
-		@jid, @password = JID.new(jid), password
-		@jid.resource=("xxrb") unless @jid.resource
-		@client = Client.new(@jid)
-		@client.connect
-		@client.auth(@password)
+	def connect(jid = nil, password = nil)
+		unless jid.nil? and password.nil?
+			@jid, @password = JID.new(jid), password
+			@jid.resource=("xxrb") unless @jid.resource
+			@client = Client.new(@jid)
+			@client.connect
+			@client.auth_sasl(Jabber::SASL::Base.new,@password)
+		else
+			file = File.open('login.conf')
+			login = YAML::load(file)
+			file.close
+			connect(login['jid'],login['password'])
+		end
+		start_xmpp_interface
 	end
 
 	def presence_online(message = nil)

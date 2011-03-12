@@ -1,7 +1,6 @@
 #!/usr/bin/ruby
 
 require 'xxrb'
-require 'yaml'
 require 'json/pure'
 require 'net/http'
 require 'uri'
@@ -23,6 +22,7 @@ bot = Xxrb.new
 		end
 	end
 
+
 	cli_hello = RbCmd.new(:hello, :cli)
 	def cli_hello.action
 		@bot.hello
@@ -30,29 +30,25 @@ bot = Xxrb.new
 
 	cli_connect = RbCmd.new(:connect, :cli)
 	def cli_connect.action
-		j,p = @args.split(' ',2)
-		@bot.connect(j,p) if @args 
+		if @args
+			j,p = @args.split(' ',2)
+			@bot.connect(j,p)
+		else
+			@bot.connect
+		end
+
 		@bot.presence_online("I'm on and off for testing")
 		result = "> now we should be connected"
 		result += "\n" + @bot.start_xmpp_interface
 	end
+
 
 	cli_listen = RbCmd.new(:listen, :cli)
 	def cli_listen.action
 		result = @bot.start_xmpp_interface
 	end
 
-	cli_quickconnect = RbCmd.new(:quick, :cli)
-	def cli_quickconnect.action
-		file = File.open('login.conf')
-		login = YAML::load(file)
-		file.close
-		@bot.connect(login['jid'],login['password'])
-		@bot.presence_online("I'm on and off for testing")
-		@bot.start_xmpp_interface
-		result = login['jid']
-	end
-
+# Help for XMPP Commands
 	xmpp_help = RbCmd.new(:help, :xmpp)
 	def xmpp_help.action
 		if @args.nil?
@@ -66,6 +62,8 @@ bot = Xxrb.new
 		end
 	end
 
+
+# Original greeting function
 	xmpp_hello = RbCmd.new(:hello, :xmpp)
 	def xmpp_hello.action
 		if @args
@@ -77,7 +75,9 @@ bot = Xxrb.new
 	def xmpp_hello.help
 		result = '"hello" is only the first of many cool features'
 	end
-	
+
+	# lists all upcomming traffic for a given tram or bus station in Dresden
+	# TODO: add command to return list of all stations
 	xmpp_dvb = RbCmd.new(:dvb, :xmpp)
 	def xmpp_dvb.action
 		if @args
@@ -100,6 +100,8 @@ bot = Xxrb.new
 		result = "dvb - lists all upcomming traffic for a given tram or bus station in Dresden\n example \"dvb slub\" "
 	end
  
+	# sets the status of the bot
+	# TODO: help and args  (online, offline, dnd and so on)
 	cli_status = RbCmd.new(:status, :cli)
 	def cli_status.action
 		@bot.presence_online(@args)
@@ -112,7 +114,6 @@ bot = Xxrb.new
 	bot.add_cmd(cli_help)
 	bot.add_cmd(cli_hello)
 	bot.add_cmd(cli_connect)
-	bot.add_cmd(cli_quickconnect)
 	bot.add_cmd(cli_listen)
 	bot.add_cmd(cli_status)
 

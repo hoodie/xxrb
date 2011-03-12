@@ -1,3 +1,10 @@
 Options:
  * auto autorization (true/false)
+ * config file (yaml)
+ * capabilities
+
+Functions:
+ * rss listener
+ * save per user options within notes
+ * pass commands as args
 
