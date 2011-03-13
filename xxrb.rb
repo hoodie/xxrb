@@ -35,11 +35,8 @@ class Xxrb
 		@xmpp_cmds
 	end
 
-	def client
-		unless @client
-			@client = Client.new
-		end
-		@client
+	def roster
+		@roster_string
 	end
 	# End of getters
 
@@ -148,37 +145,66 @@ class Xxrb
 			@client = Client.new(@jid)
 			@client.connect
 			@client.auth(@password)
+
+			get_roster
+			#accept_subscribers
 		else
 			connect(@jid, @password)
 		end
 		result = " > connected to "+ @jid.domain
 	end
 
+	def accept_subscribers
+		@client.add_subscription_request_callback do |p|
+			puts "!! somebody whats to be our friend"
+		end
+
+		lambda do |p|
+			if p.type == :subscribed
+				puts '! ' + 'somebody whats has subscribed me'
+			elsif p.type == :unsubscribe
+				puts '! ' + p.from.to_s + " doesn't want to be my friend anymore"
+			elsif p.type == :unsubscribed
+				puts '! ' + p.from.to_s + " ended this relationship"
+			end
+		end
+	end
+
+	def send(type, recipient)
+		body = gets.strip
+		message = Message.new(JID.new(recipient),body)
+		message.type=(type)
+		@client.send(message)
+	end
+
 	# lists roster
 	def get_roster
-		roster = Jabber::Roster::Helper.new(@client)
-		rosterthread = Thread.current
-		roster.add_query_callback do |iq|
-			rosterthread.wakeup
-		end
-		Thread.stop
-		@roster_string = ""
-		roster.groups.each do |group|
-			if group.nil?
-				@roster_string += "\n"
-			else
-				@roster_string += group.to_s + "\n"
+		if @client
+			@roster = Jabber::Roster::Helper.new(@client)
+			rosterthread = Thread.current
+			@roster.add_query_callback do |iq|
+				rosterthread.wakeup
 			end
-
-			roster.find_by_group(group).each do |item|
-				if item.iname
-					@roster_string += "- " + item.iname.to_s + "\n"
+			Thread.stop
+			@roster_string = ""
+			@roster.groups.each do |group|
+				if group.nil?
+					@roster_string += "\n"
 				else
-					@roster_string += "- " + item.jid.to_s + "\n"
+					@roster_string += group.to_s + "\n"
+				end
+
+				@roster.find_by_group(group).each do |item|
+					if item.iname
+						@roster_string += "- " + item.iname.to_s + "\n"
+					else
+						@roster_string += "- " + item.jid.to_s + "\n"
+					end
 				end
 			end
+		else
+			@roster_string = " > not yet connected"
 		end
-
 		@roster_string
 	end
 

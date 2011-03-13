@@ -112,7 +112,25 @@ require 'uri'
 
 	cli_roster = RbCmd.new(:roster, :cli)
 	def cli_roster.action
-		@bot.get_roster
+		@bot.roster
+	end
+
+	cli_chat= RbCmd.new(:chat, :cli)
+	def cli_chat.action
+		if(@args)
+			@bot.send(:chat, @args)
+		else
+			" > no recipient"
+		end
+	end
+
+	cli_send = RbCmd.new(:send, :cli)
+	def cli_send.action
+		if(@args)
+			@bot.send(:normal, @args)
+		else
+			" > no recipient"
+		end
 	end
 
 
@@ -124,6 +142,8 @@ bot = Xxrb.new
 	# Some will later be moved into the Xxrb class and become basic functionality
 
 	bot.add_cmd(cli_help)
+	bot.add_cmd(cli_send)
+	bot.add_cmd(cli_chat)
 	bot.add_cmd(cli_hello)
 	bot.add_cmd(cli_connect)
 	bot.add_cmd(cli_listen)
