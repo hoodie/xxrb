@@ -37,6 +37,7 @@ class Xxrb
 	end
 
 	def roster
+		get_roster
 		@roster_string
 	end
 
@@ -151,6 +152,7 @@ class Xxrb
 			@client.connect
 			@client.auth(@password)
 
+			init_roster
 			get_roster
 			accept_subscribers
 			@connected = true
@@ -184,8 +186,8 @@ class Xxrb
 		@client.send(message)
 	end
 
-	# lists roster
-	def get_roster
+	# initializes roster
+	def init_roster
 		if @client
 			@roster = Jabber::Roster::Helper.new(@client)
 			rosterthread = Thread.current
@@ -193,6 +195,12 @@ class Xxrb
 				rosterthread.wakeup
 			end
 			Thread.stop
+		end
+	end
+
+	# lists roster
+	def get_roster
+		if @roster
 			@roster_string = ""
 			@roster.groups.each do |group|
 				if group.nil?
@@ -232,21 +240,17 @@ class Xxrb
 
 	# removes jid subscription
 	def remove (jid)
-		
-		#<presence from="dvb@hoodie.de" type="unsubscribed" xml:lang="en" to="hoodie@jabber.ccc.de/Dean"/>
-		#<presence from="dvb@hoodie.de" type="unavailable" to="hoodie@jabber.ccc.de/Dean"/>
 		jid = JID.new(jid.strip)
 
 		deletees = @roster.find(jid)
 		if deletees.count == 1
 			if deletees[jid.strip].remove
 				puts "removed " + jid.strip
+			end
 		else
 			puts jid.to_s + ' not found'
 		end
 	end
-
-
 
 end
 
