@@ -110,6 +110,7 @@ require 'uri'
 	end
 
 
+	# List roster items
 	cli_roster = RbCmd.new(:roster, :cli)
 	def cli_roster.action
 		@bot.roster
@@ -118,6 +119,7 @@ require 'uri'
 		'lists all contacts on the roster'
 	end
 
+	# send a 'chat' message to jid
 	cli_chat= RbCmd.new(:chat, :cli)
 	def cli_chat.action
 		if @bot.connected
@@ -134,6 +136,7 @@ require 'uri'
 		'Usage: "chat jid" the next line will be sent'
 	end
 
+	# send a 'normal' message to jid
 	cli_send = RbCmd.new(:send, :cli)
 	def cli_send.action
 		if @bot.connected
@@ -150,6 +153,11 @@ require 'uri'
 		'Usage: "send jid" the next line will be sent'
 	end
 
+	cli_remove = RbCmd.new(:remove, :cli)
+	def cli_remove.action
+		@bot.remove(@args)
+	end
+
 
 # Initialize the bot
 
@@ -162,6 +170,7 @@ bot = Xxrb.new
 	bot.add_cmd(cli_send)
 	bot.add_cmd(cli_chat)
 	bot.add_cmd(cli_hello)
+	bot.add_cmd(cli_remove)
 	bot.add_cmd(cli_connect)
 	#bot.add_cmd(cli_listen)
 	#FIXME bot.add_cmd(cli_status)

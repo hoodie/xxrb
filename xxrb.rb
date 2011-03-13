@@ -19,6 +19,7 @@ class Xxrb
 
 			@jid = conf['account']['jid']
 			@password = conf['account']['password']
+			@autoauthorize = conf['options']['autoauthorize']
 
 		else
 			puts "Error: no config file"
@@ -151,7 +152,7 @@ class Xxrb
 			@client.auth(@password)
 
 			get_roster
-			#accept_subscribers
+			accept_subscribers
 			@connected = true
 		else
 			connect(@jid, @password)
@@ -160,17 +161,18 @@ class Xxrb
 	end
 
 	def accept_subscribers
-		@client.add_subscription_request_callback do |p|
-			puts "!! somebody whats to be our friend"
-		end
-
-		lambda do |p|
-			if p.type == :subscribed
-				puts '! ' + 'somebody whats has subscribed me'
-			elsif p.type == :unsubscribe
-				puts '! ' + p.from.to_s + " doesn't want to be my friend anymore"
-			elsif p.type == :unsubscribed
-				puts '! ' + p.from.to_s + " ended this relationship"
+		@roster.add_subscription_request_callback do |item, presence|
+			if @autoauthorize
+				@roster.accept_subscription(presence.from)
+				@roster.add(presence.from,presence.from.node.to_s, true) #TODO add() untested
+			else
+				puts '!!! accept ' + presence.from.to_s + '? (yes/No)'
+				if gets.strip.downcase == 'yes'
+					@roster.accept_subscription(presence.from)
+					@roster.add(presence.from,presence.from.node.to_s, true)
+				else
+					@roster.decline_subscription(presence.from)
+				end
 			end
 		end
 	end
@@ -227,5 +229,24 @@ class Xxrb
 			result = " > not yet connected"
 		end
 	end
+
+	# removes jid subscription
+	def remove (jid)
+		
+		#<presence from="dvb@hoodie.de" type="unsubscribed" xml:lang="en" to="hoodie@jabber.ccc.de/Dean"/>
+		#<presence from="dvb@hoodie.de" type="unavailable" to="hoodie@jabber.ccc.de/Dean"/>
+		jid = JID.new(jid.strip)
+
+		deletees = @roster.find(jid)
+		if deletees.count == 1
+			if deletees[jid.strip].remove
+				puts "removed " + jid.strip
+		else
+			puts jid.to_s + ' not found'
+		end
+	end
+
+
+
 end
 
