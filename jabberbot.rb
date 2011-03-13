@@ -120,10 +120,14 @@ require 'uri'
 
 	cli_chat= RbCmd.new(:chat, :cli)
 	def cli_chat.action
-		if(@args)
-			@bot.send(:chat, @args)
+		if @bot.connected
+			if(@args)
+				@bot.send(:chat, @args)
+			else
+				" > no recipient"
+			end
 		else
-			" > no recipient"
+			'not connected'
 		end
 	end
 	def cli_chat.help
@@ -132,10 +136,14 @@ require 'uri'
 
 	cli_send = RbCmd.new(:send, :cli)
 	def cli_send.action
-		if(@args)
-			@bot.send(:normal, @args)
+		if @bot.connected
+			if(@args)
+				@bot.send(:normal, @args)
+			else
+				" > no recipient"
+			end
 		else
-			" > no recipient"
+			'not connected'
 		end
 	end
 	def cli_send.help
@@ -155,8 +163,8 @@ bot = Xxrb.new
 	bot.add_cmd(cli_chat)
 	bot.add_cmd(cli_hello)
 	bot.add_cmd(cli_connect)
-	bot.add_cmd(cli_listen)
-	bot.add_cmd(cli_status)
+	#bot.add_cmd(cli_listen)
+	#FIXME bot.add_cmd(cli_status)
 	bot.add_cmd(cli_roster)
 
 	bot.add_cmd(xmpp_hello)

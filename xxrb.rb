@@ -38,6 +38,10 @@ class Xxrb
 	def roster
 		@roster_string
 	end
+
+	def connected
+		@connected || false
+	end
 	# End of getters
 
 
@@ -148,6 +152,7 @@ class Xxrb
 
 			get_roster
 			#accept_subscribers
+			@connected = true
 		else
 			connect(@jid, @password)
 		end
