@@ -1,9 +1,19 @@
 #!/usr/bin/ruby
+# This Class initializes the bot which is defined in xxrb.rb
+# it defines commands that make use of core functionality within xxrb
+# and adds them to the bot.
+# This way the bot can be extended with new functionality that is not
+# neccessarily xmpp related.
+# For example you could add a command named 'calc' that parses a mathmatic
+# calculation and returnes the result.
+# The bot than will accept the command via xmpp and send back a response
+# the same way (normal or chat)
 
 require 'xxrb'
 require 'json/pure'
 require 'net/http'
 require 'uri'
+
 
 
 # Here we start defining new commands
