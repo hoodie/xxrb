@@ -114,6 +114,9 @@ require 'uri'
 	def cli_roster.action
 		@bot.roster
 	end
+	def cli_roster.help
+		'lists all contacts on the roster'
+	end
 
 	cli_chat= RbCmd.new(:chat, :cli)
 	def cli_chat.action
@@ -123,6 +126,9 @@ require 'uri'
 			" > no recipient"
 		end
 	end
+	def cli_chat.help
+		'Usage: "chat jid" the next line will be sent'
+	end
 
 	cli_send = RbCmd.new(:send, :cli)
 	def cli_send.action
@@ -131,6 +137,9 @@ require 'uri'
 		else
 			" > no recipient"
 		end
+	end
+	def cli_send.help
+		'Usage: "send jid" the next line will be sent'
 	end
 
 
