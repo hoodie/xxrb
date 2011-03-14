@@ -1,4 +1,5 @@
 #!/usr/bin/ruby
+
 # This Class initializes the bot which is defined in xxrb.rb
 # it defines commands that make use of core functionality within xxrb
 # and adds them to the bot.
@@ -101,7 +102,7 @@ require 'uri'
 			parsed = JSON::parse(result.body)
 			list = parsed.map do |line|
 				out = "" unless out
-				out += line[2] +"\t"+  line[0] +"\t"+ line[1] + "\n"
+				out += line[2] +"min\t"+  line[0] +"\t"+ line[1] + "\n"
 			end
 			result = "Results for "+@args+":\n" + list.to_s
 		else
@@ -176,6 +177,8 @@ bot = Xxrb.new
 	# Here we add our commands to the bot
 	# Some will later be moved into the Xxrb class and become basic functionality
 
+
+	#bot.fallback = lambda { |command, args| puts command }
 	bot.add_cmd(cli_help)
 	bot.add_cmd(cli_send)
 	bot.add_cmd(cli_chat)
@@ -183,7 +186,7 @@ bot = Xxrb.new
 	bot.add_cmd(cli_remove)
 	bot.add_cmd(cli_connect)
 	#bot.add_cmd(cli_listen)
-	#FIXME bot.add_cmd(cli_status)
+	bot.add_cmd(cli_status)
 	bot.add_cmd(cli_roster)
 
 	bot.add_cmd(xmpp_hello)

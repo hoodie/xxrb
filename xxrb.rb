@@ -6,12 +6,15 @@ require 'rbcmd'
 include Jabber
 
 
-#inspired by xmpp4r example client
 class Xxrb
+
+	attr_writer :cli_fallback, :xmpp_fallback
+	attr_reader :cli_fallback, :xmpp_fallback, :cli_cmds, :xmpp_cmds
 
 	def initialize
 		@cli_cmds  = {}
 		@xmpp_cmds = {}
+
 		if File.exists?('config.yml')
 			file = File.open('config.yml')
 			conf = YAML::load(file)
@@ -20,22 +23,23 @@ class Xxrb
 			@jid = conf['account']['jid']
 			@password = conf['account']['password']
 			@autoauthorize = conf['options']['autoauthorize']
+			@autologin = conf['options']['autologin']
+
+			@cli_fallback = lambda { |command, args| puts command + ' is not a command'  }
+			@xmpp_fallback = lambda { |command, args| puts command + ' is not a command'  }
 
 		else
 			puts "Error: no config file"
 			Thread.current.exit
 		end
+		
+		if @autologin
+			connect
+			status(conf['options']['defaultstatus'])
+		end
 	end
 
 	# Begin of getters
-	def cli_cmds
-		@cli_cmds
-	end
-
-	def xmpp_cmds
-		@xmpp_cmds
-	end
-
 	def roster
 		get_roster
 		@roster_string
@@ -91,14 +95,19 @@ class Xxrb
 	def take_cmd(pool, line)
 		command, args = line.split(' ', 2) unless line.nil? 
 		if command	
-		unless pool[command.to_sym] == nil
-			action = lambda { pool[command.to_sym].execute(args) }
-		else
-			action = proc { 'command "'+command+'" not found' }
-		end
+			unless pool[command.to_sym] == nil
+				action = lambda { pool[command.to_sym].execute(args) }
+			else
+				if pool == @cli_cmds
+					action = lambda{ @cli_fallback.call(command, args) }
+				else
+					action = lambda{ @xmpp_fallback.call(command, args) }
+				end
+			end
 		else
 			action = proc {}
 		end
+		action
 	end
 
 	
@@ -179,12 +188,15 @@ class Xxrb
 		end
 	end
 
+	
+	# sends a message to a recipient either as type (:chat, :groupchat, :headline, :normal )
 	def send(type, recipient)
 		body = gets.strip
 		message = Message.new(JID.new(recipient),body)
 		message.type=(type)
 		@client.send(message)
 	end
+
 
 	# initializes roster
 	def init_roster
@@ -197,6 +209,7 @@ class Xxrb
 			Thread.stop
 		end
 	end
+
 
 	# lists roster
 	def get_roster
@@ -253,4 +266,3 @@ class Xxrb
 	end
 
 end
-
