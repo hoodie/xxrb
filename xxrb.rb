@@ -25,8 +25,8 @@ class Xxrb
 			@autoauthorize = conf['options']['autoauthorize']
 			@autologin = conf['options']['autologin']
 
-			@cli_fallback = lambda { |command, args| puts command + ' is not a command'  }
-			@xmpp_fallback = lambda { |command, args| puts command + ' is not a command'  }
+			@cli_fallback = lambda { |command, args|  command + ' is not a command'  }
+			@xmpp_fallback = lambda { |command, args| command + ' is not a command'  }
 
 		else
 			puts "Error: no config file"
