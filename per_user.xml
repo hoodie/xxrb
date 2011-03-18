@@ -1,0 +1,7 @@
+<xxrb xmlns="xxrb:peruser">
+	<user jid="user@server">
+		<remindme>
+			buy some milk
+		</remindme>
+	</user>
+</xxrb>

@@ -17,13 +17,13 @@ class Xxrb
 
 		if File.exists?('config.yml')
 			file = File.open('config.yml')
-			conf = YAML::load(file)
+			@config = YAML::load(file)
 			file.close
 
-			@jid = conf['account']['jid']
-			@password = conf['account']['password']
-			@autoauthorize = conf['options']['autoauthorize']
-			@autologin = conf['options']['autologin']
+			@jid = @config['account']['jid']
+			@password = @config['account']['password']
+			@autoauthorize = @config['options']['autoauthorize']
+			@autologin = @config['options']['autologin']
 
 			@cli_fallback = lambda { |command, args|  command + ' is not a command'  }
 			@xmpp_fallback = lambda { |command, args| command + ' is not a command'  }
@@ -35,7 +35,7 @@ class Xxrb
 		
 		if @autologin
 			connect
-			status(conf['options']['defaultstatus'])
+			status(@config['options']['defaultstatus'])
 		end
 	end
 
@@ -150,13 +150,17 @@ class Xxrb
 		end
 	end
 
+
+
+
 	# Begin of XMPP Functions
+
 
 	# Connect either to given jid or to jid from config
 	def connect(jid = nil, password = nil)
 		unless jid.nil? and password.nil?
 			@jid, @password = JID.new(jid), password
-			@jid.resource=("xxrb") unless @jid.resource
+			@jid.resource=(@config['defaults']['resource']) unless @jid.resource
 			@client = Client.new(@jid)
 			@client.connect
 			@client.auth(@password)
@@ -165,11 +169,13 @@ class Xxrb
 			get_roster
 			accept_subscribers
 			@connected = true
+			result = " > connected to "+ @jid.domain
+
 		else
 			connect(@jid, @password)
 		end
-		result = " > connected to "+ @jid.domain
 	end
+
 
 	def accept_subscribers
 		@roster.add_subscription_request_callback do |item, presence|
@@ -236,6 +242,7 @@ class Xxrb
 		@roster_string
 	end
 
+
 	# TODO does not return status correctly
 	def status(message = nil)
 		if @client and message
@@ -251,8 +258,9 @@ class Xxrb
 		end
 	end
 
+
 	# removes jid subscription
-	def remove (jid)
+	def unsubscribe(jid)
 		jid = JID.new(jid.strip)
 
 		deletees = @roster.find(jid)
@@ -264,5 +272,24 @@ class Xxrb
 			puts jid.to_s + ' not found'
 		end
 	end
+
+
+	
+	# has nothing to do with "remove" 
+	def store()
+		iq = Iq.new(:set)
+		query=REXML::Element.new('query')
+		query.add_attribute("xmlns","jabber:iq:private")
+
+		internal=REXML::Element.new('xxrb')
+		internal.add_attribute("xmlns","xxrb:peruser")
+
+		query.add(internal)
+
+		iq.query=query
+
+		puts iq
+	end
+
 
 end

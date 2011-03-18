@@ -166,7 +166,12 @@ require 'uri'
 
 	cli_remove = RbCmd.new(:remove, :cli)
 	def cli_remove.action
-		@bot.remove(@args)
+		@bot.unsubscribe(@args)
+	end
+	
+	cli_save = RbCmd.new(:save, :cli)
+	def cli_save.action
+		@bot.save()
 	end
 
 
@@ -179,6 +184,7 @@ bot = Xxrb.new
 
 
 	#bot.fallback = lambda { |command, args| puts command }
+	bot.add_cmd(cli_save)
 	bot.add_cmd(cli_help)
 	bot.add_cmd(cli_send)
 	bot.add_cmd(cli_chat)
