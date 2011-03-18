@@ -6,4 +6,7 @@ options:
  admins: ['admin@server']
  autoauthorize: false
  autologin: true
- defaultstatus: "I'm on and off for testing..."
+
+defaults:
+  status: "I'm on and off for testing..."
+  resource: "XXRB"

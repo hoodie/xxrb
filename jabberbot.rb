@@ -171,7 +171,12 @@ require 'uri'
 	
 	cli_save = RbCmd.new(:save, :cli)
 	def cli_save.action
-		@bot.save()
+		@bot.store()
+	end
+
+	cli_load= RbCmd.new(:load, :cli)
+	def cli_load.action
+		@bot.xep49_load()
 	end
 
 
@@ -185,6 +190,8 @@ bot = Xxrb.new
 
 	#bot.fallback = lambda { |command, args| puts command }
 	bot.add_cmd(cli_save)
+	bot.add_cmd(cli_load)
+
 	bot.add_cmd(cli_help)
 	bot.add_cmd(cli_send)
 	bot.add_cmd(cli_chat)

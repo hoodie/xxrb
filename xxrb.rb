@@ -3,10 +3,12 @@ require 'xmpp4r'
 require 'xmpp4r/roster/helper/roster'
 require 'yaml'
 require 'rbcmd'
+require 'xxrb-xep49'
 include Jabber
 
 
 class Xxrb
+	include XEP49
 
 	attr_writer :cli_fallback, :xmpp_fallback
 	attr_reader :cli_fallback, :xmpp_fallback, :cli_cmds, :xmpp_cmds
@@ -275,21 +277,6 @@ class Xxrb
 
 
 	
-	# has nothing to do with "remove" 
-	def store()
-		iq = Iq.new(:set)
-		query=REXML::Element.new('query')
-		query.add_attribute("xmlns","jabber:iq:private")
-
-		internal=REXML::Element.new('xxrb')
-		internal.add_attribute("xmlns","xxrb:peruser")
-
-		query.add(internal)
-
-		iq.query=query
-
-		puts iq
-	end
 
 
 end

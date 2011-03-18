@@ -8,3 +8,6 @@ Functions:
  * save per user options within notes
  * pass commands as args
  * Joining and bookmarking MUCs
+
+Under the hood:
+ * replace JSON with something much smaller
