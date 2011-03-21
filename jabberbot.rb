@@ -164,21 +164,25 @@ require 'uri'
 		'Usage: "send jid" the next line will be sent'
 	end
 
+	cli_load = RbCmd.new(:load, :cli)
+	def cli_load.action
+		@bot.storer.load_all
+	end
+
 	cli_remove = RbCmd.new(:remove, :cli)
 	def cli_remove.action
 		@bot.unsubscribe(@args)
 	end
 	
-	cli_save = RbCmd.new(:save, :cli)
-	def cli_save.action
-		@bot.store()
+	xmpp_remember = RbCmd.new(:remember, :xmpp)
+	def xmpp_remember.action
+		@bot.storer.store(@jid,'remindme',@args)
 	end
 
-	cli_load= RbCmd.new(:load, :cli)
-	def cli_load.action
-		@bot.xep49_load()
+	xmpp_remindme = RbCmd.new(:remindme, :xmpp)
+	def xmpp_remindme.action
+		@bot.storer.load(@jid,'remindme')
 	end
-
 
 # Initialize the bot
 
@@ -189,8 +193,6 @@ bot = Xxrb.new
 
 
 	#bot.fallback = lambda { |command, args| puts command }
-	bot.add_cmd(cli_save)
-	bot.add_cmd(cli_load)
 
 	bot.add_cmd(cli_help)
 	bot.add_cmd(cli_send)
@@ -201,10 +203,14 @@ bot = Xxrb.new
 	#bot.add_cmd(cli_listen)
 	bot.add_cmd(cli_status)
 	bot.add_cmd(cli_roster)
+	bot.add_cmd(cli_load)
+
 
 	bot.add_cmd(xmpp_hello)
 	bot.add_cmd(xmpp_help)
 	bot.add_cmd(xmpp_dvb)
+	bot.add_cmd(xmpp_remindme)
+	bot.add_cmd(xmpp_remember)
 
 	bot.start_cli
 

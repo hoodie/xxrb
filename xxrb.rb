@@ -3,19 +3,20 @@ require 'xmpp4r'
 require 'xmpp4r/roster/helper/roster'
 require 'yaml'
 require 'rbcmd'
-require 'xxrb-xep49'
+require 'xep49-storer'
 include Jabber
 
 
 class Xxrb
-	include XEP49
 
 	attr_writer :cli_fallback, :xmpp_fallback
-	attr_reader :cli_fallback, :xmpp_fallback, :cli_cmds, :xmpp_cmds
+	attr_reader :cli_fallback, :xmpp_fallback, :cli_cmds, :xmpp_cmds, :storer, :client
 
 	def initialize
 		@cli_cmds  = {}
 		@xmpp_cmds = {}
+
+		@storer = XEP49.new(self)
 
 		if File.exists?('config.yml')
 			file = File.open('config.yml')
@@ -27,8 +28,8 @@ class Xxrb
 			@autoauthorize = @config['options']['autoauthorize']
 			@autologin = @config['options']['autologin']
 
-			@cli_fallback = lambda { |command, args|  command + ' is not a command'  }
-			@xmpp_fallback = lambda { |command, args| command + ' is not a command'  }
+			@cli_fallback = lambda { |command, args, jid|  command + ' is not a command'  }
+			@xmpp_fallback = lambda { |command, args, jid| command + ' is not a command'  }
 
 		else
 			puts "Error: no config file"
@@ -94,16 +95,16 @@ class Xxrb
 
 
 	# Parse commandline input and deligate to either xmpp_cmds or cli_cmds
-	def take_cmd(pool, line)
+	def take_cmd(pool, line, jid = nil)
 		command, args = line.split(' ', 2) unless line.nil? 
 		if command	
 			unless pool[command.to_sym] == nil
-				action = lambda { pool[command.to_sym].execute(args) }
+				action = lambda { pool[command.to_sym].execute(args, jid) }
 			else
 				if pool == @cli_cmds
-					action = lambda{ @cli_fallback.call(command, args) }
+					action = lambda{ @cli_fallback.call(command, args, jid) }
 				else
-					action = lambda{ @xmpp_fallback.call(command, args) }
+					action = lambda{ @xmpp_fallback.call(command, args, jid) }
 				end
 			end
 		else
@@ -135,8 +136,8 @@ class Xxrb
 		if @client
 			@client.add_message_callback { |message|
 				unless message.type == :error
-					puts message.from.to_s+": \""+message.body.strip+"\""
-					action = take_cmd(@xmpp_cmds, message.body.strip)
+					puts message.from.to_s + ": \""+message.body.strip+"\""
+					action = take_cmd(@xmpp_cmds, message.body.strip, message.from)
 					output = action.call.to_s
 					res = Message.new(message.from, output)
 					res.type = message.type
