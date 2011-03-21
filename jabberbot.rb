@@ -174,12 +174,17 @@ require 'uri'
 		@bot.unsubscribe(@args)
 	end
 	
-	xmpp_remember = RbCmd.new(:remember, :xmpp)
+	cli_whoami= RbCmd.new(:whoami, :cli)
+	def cli_whoami.action
+		@jid
+	end
+	
+	xmpp_remember = RbCmd.new(:remember, :cli)
 	def xmpp_remember.action
 		@bot.storer.store(@jid,'remindme',@args)
 	end
 
-	xmpp_remindme = RbCmd.new(:remindme, :xmpp)
+	xmpp_remindme = RbCmd.new(:remindme, :cli)
 	def xmpp_remindme.action
 		@bot.storer.load(@jid,'remindme')
 	end
@@ -199,6 +204,7 @@ bot = Xxrb.new
 	bot.add_cmd(cli_chat)
 	bot.add_cmd(cli_hello)
 	bot.add_cmd(cli_remove)
+	bot.add_cmd(cli_whoami)
 	bot.add_cmd(cli_connect)
 	#bot.add_cmd(cli_listen)
 	bot.add_cmd(cli_status)

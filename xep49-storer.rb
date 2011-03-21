@@ -1,14 +1,14 @@
 class XEP49
 
 	def initialize(bot)
-		@client = bot.client
+		@bot = bot
 	end
 		
 
 	def store(jid, property, value)
 		stanza = xep49_build_per_user(:set, jid, property, value)
-		if @client.connected
-			@client.send(stanza)
+		if @bot.connected
+			@bot.exec(stanza)
 			"trying not to forget"
 		else
 			"not connected therefore can't send stanza \""+ stanza +"\""
@@ -18,8 +18,8 @@ class XEP49
 
 	def load(jid, property)
 		stanza = xep49_build_per_user(:get, jid, property)
-		if @client.connected
-			@client.send(stanza)
+		if @bot.connected
+			@bot.exec(stanza)
 			"seems that I forgot"
 		else
 			"not connected therefore can't send stanza \""+ stanza +"\""
@@ -31,7 +31,7 @@ class XEP49
 		internal.add_attribute("xmlns","xxrb:peruser")
 
 		stanza = xep49_build_query(:get, internal)
-		@client.send(stanza)
+		@bot.exec(stanza)
 	end
 
 

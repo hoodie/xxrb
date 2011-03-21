@@ -9,12 +9,13 @@ include Jabber
 
 class Xxrb
 
-	attr_writer :cli_fallback, :xmpp_fallback
-	attr_reader :cli_fallback, :xmpp_fallback, :cli_cmds, :xmpp_cmds, :storer, :client
+	attr :cli_fallback, :xmpp_fallback
+	attr_reader :connected, :cli_cmds, :xmpp_cmds, :storer, :client
 
 	def initialize
 		@cli_cmds  = {}
 		@xmpp_cmds = {}
+		@connected = false
 
 		@storer = XEP49.new(self)
 
@@ -26,7 +27,6 @@ class Xxrb
 			@jid = @config['account']['jid']
 			@password = @config['account']['password']
 			@autoauthorize = @config['options']['autoauthorize']
-			@autologin = @config['options']['autologin']
 
 			@cli_fallback = lambda { |command, args, jid|  command + ' is not a command'  }
 			@xmpp_fallback = lambda { |command, args, jid| command + ' is not a command'  }
@@ -36,9 +36,11 @@ class Xxrb
 			Thread.current.exit
 		end
 		
-		if @autologin
-			connect
-			status(@config['options']['defaultstatus'])
+		if @config['options']['autologin']
+			puts connect(@jid,@password)
+			puts status(@config['defaults']['status'])
+			puts start_xmpp_interface
+			puts "\n"
 		end
 	end
 
@@ -48,9 +50,6 @@ class Xxrb
 		@roster_string
 	end
 
-	def connected
-		@connected || false
-	end
 	# End of getters
 
 
@@ -122,7 +121,7 @@ class Xxrb
 			line = gets.strip!
 
 			quit = true if line == 'quit'
-			action = take_cmd(@cli_cmds, line)
+			action = take_cmd(@cli_cmds, line, @client.jid)
 			unless quit
 				output = action.call
 				puts output unless output.nil?
@@ -161,7 +160,7 @@ class Xxrb
 
 	# Connect either to given jid or to jid from config
 	def connect(jid = nil, password = nil)
-		unless jid.nil? and password.nil?
+		unless jid.nil? or password.nil?
 			@jid, @password = JID.new(jid), password
 			@jid.resource=(@config['defaults']['resource']) unless @jid.resource
 			@client = Client.new(@jid)
@@ -173,9 +172,17 @@ class Xxrb
 			accept_subscribers
 			@connected = true
 			result = " > connected to "+ @jid.domain
-
 		else
 			connect(@jid, @password)
+		end
+	end
+
+	def exec(stanza)
+		if @connected
+			puts 'connected'
+			@client.send(stanza)
+		else
+			puts "not connected"
 		end
 	end
 
