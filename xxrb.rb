@@ -17,7 +17,7 @@ class Xxrb
 		@xmpp_cmds = {}
 		@connected = false
 
-		@storer = XEP49.new(self)
+		#@storer = XEP49.new(self)
 
 		if File.exists?('config.yml')
 			file = File.open('config.yml')
@@ -112,6 +112,7 @@ class Xxrb
 		action
 	end
 
+
 	
 	# Begin responding to commandline input
 	def start_cli
@@ -121,13 +122,14 @@ class Xxrb
 			line = gets.strip!
 
 			quit = true if line == 'quit'
-			action = take_cmd(@cli_cmds, line, @client.jid)
+			action = take_cmd(@cli_cmds, line, @jid)
 			unless quit
 				output = action.call
 				puts output unless output.nil?
 			end
 		end
 	end
+
 
 	
 	# Begin responding to xmpp input
@@ -143,15 +145,17 @@ class Xxrb
 					@client.send(res)
 				end
 			}
-			@client.add_iq_callback { |iq|
-				puts iq
-			}
+			@client.add_iq_callback(0,'puts') { |iq| iq_dispatch(iq) }
 			result = " > listening for commands from xmpp"
 		else
 			result = " > not yet connected, please connect first"
 		end
 	end
 
+	def iq_dispatch(iq)
+		#iq.root.elements.each('//user') { |e| e.to_s }
+		puts ">>> " + iq.to_s
+	end
 
 
 
@@ -179,7 +183,6 @@ class Xxrb
 
 	def exec(stanza)
 		if @connected
-			puts 'connected'
 			@client.send(stanza)
 		else
 			puts "not connected"
@@ -204,6 +207,7 @@ class Xxrb
 		end
 	end
 
+
 	
 	# sends a message to a recipient either as type (:chat, :groupchat, :headline, :normal )
 	def send(type, recipient)
@@ -214,15 +218,16 @@ class Xxrb
 	end
 
 
+
 	# initializes roster
 	def init_roster
 		if @client
 			@roster = Jabber::Roster::Helper.new(@client)
-			rosterthread = Thread.current
-			@roster.add_query_callback do |iq|
-				rosterthread.wakeup
-			end
-			Thread.stop
+#			rosterthread = Thread.current
+#			@roster.add_query_callback do |iq|
+#				rosterthread.wakeup
+#			end
+#			Thread.stop
 		end
 	end
 
@@ -251,6 +256,7 @@ class Xxrb
 		end
 		@roster_string
 	end
+
 
 
 	# TODO does not return status correctly

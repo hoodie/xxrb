@@ -15,16 +15,29 @@ class XEP49
 		end
 	end	
 
-
 	def load(jid, property)
 		stanza = xep49_build_per_user(:get, jid, property)
 		if @bot.connected
+			@bot.client.add_iq_callback(1,'load') { |iq| 
+				puts iq.root.elements.each("//user") { |e|
+					puts e.to_s
+				}
+				@bot.client.delete_iq_client('load')
+			}
 			@bot.exec(stanza)
-			"seems that I forgot"
 		else
 			"not connected therefore can't send stanza \""+ stanza +"\""
 		end
 	end	
+
+	def get_properties(query)
+		if query.has_elements?
+			query['xxrb']['user']
+		else
+			puts 'nothing there'
+			''
+		end
+	end
 
 	def load_all
 		internal=REXML::Element.new('xxrb')
