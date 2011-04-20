@@ -173,11 +173,15 @@ require 'uri'
 
   xmpp_acro = RbCmd.new(:acro, :cli)
   def xmpp_acro.action
-    lookup = @args.split(' ',2)[0]
-    unless @acros[lookup]
-     'never heard of that myself, sorry'
+    if @args.nil?
+      'dfwm'
     else
-      "you don't know \"" + @acros[lookup] + "\"?"
+      lookup = @args.split(' ',2)[0]
+      unless @acros[lookup]
+       'never heard of that myself, sorry'
+      else
+        "you don't know \"" + @acros[lookup] + "\"?"
+      end
     end
   end
   def xmpp_acro.setAcro(acros)
