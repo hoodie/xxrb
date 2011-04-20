@@ -171,7 +171,7 @@ require 'uri'
 	end
   
 
-  xmpp_acro = RbCmd.new(:acro, :cli)
+  xmpp_acro = RbCmd.new(:acro, :xmpp)
   def xmpp_acro.action
     lookup = @args.split(' ',2)[0]
     unless @acros[lookup]

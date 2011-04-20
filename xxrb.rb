@@ -166,7 +166,7 @@ class Xxrb
 	def connect(jid = nil, password = nil)
 		unless jid.nil? or password.nil?
 			@jid, @password = JID.new(jid), password
-			@jid.resource=(@config['defaults']['resource']) unless @jid.resource
+			@jid.resource = @config['defaults']['resource'] unless @jid.resource
 			@client = Client.new(@jid)
 			@client.connect
 			@client.auth(@password)
