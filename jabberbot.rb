@@ -11,6 +11,7 @@
 # the same way (normal or chat)
 
 require 'xxrb'
+require 'yaml'
 require 'json/pure'
 require 'net/http'
 require 'uri'
@@ -168,7 +169,29 @@ require 'uri'
 	def cli_remove.action
 		@bot.remove(@args)
 	end
+  
 
+  xmpp_acro = RbCmd.new(:xmpp, :cli)
+  def xmpp_acro.action
+    lookup = @args.split(' ',2)[0]
+    unless @acros[lookup]
+     'never heard of that myself, sorry'
+    else
+      "you don't know \"" + @acros[lookup] + "\"?"
+    end
+  end
+  def xmpp_acro.setAcro(acros)
+    @acros = acros
+  end
+  def xmpp_acro.help
+    'translates common internet acronymes'
+  end
+
+  if File.exists?('acro.yml')
+    file = File.open('acro.yml')
+    xmpp_acro.setAcro( YAML::load(file))
+    file.close
+  end
 
 # Initialize the bot
 
@@ -188,6 +211,7 @@ bot = Xxrb.new
 	#bot.add_cmd(cli_listen)
 	bot.add_cmd(cli_status)
 	bot.add_cmd(cli_roster)
+	bot.add_cmd(xmpp_acro)
 
 	bot.add_cmd(xmpp_hello)
 	bot.add_cmd(xmpp_help)
