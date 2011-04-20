@@ -167,11 +167,11 @@ require 'uri'
 
 	cli_remove = RbCmd.new(:remove, :cli)
 	def cli_remove.action
-		@bot.remove(@args)
+		@bot.unsubscribe(@args)
 	end
   
 
-  xmpp_acro = RbCmd.new(:xmpp, :cli)
+  xmpp_acro = RbCmd.new(:acro, :cli)
   def xmpp_acro.action
     lookup = @args.split(' ',2)[0]
     unless @acros[lookup]
@@ -192,6 +192,12 @@ require 'uri'
     xmpp_acro.setAcro( YAML::load(file))
     file.close
   end
+	
+	cli_whoami= RbCmd.new(:whoami, :cli)
+	def cli_whoami.action
+		@jid
+	end
+	
 
 # Initialize the bot
 
@@ -202,16 +208,19 @@ bot = Xxrb.new
 
 
 	#bot.fallback = lambda { |command, args| puts command }
+
 	bot.add_cmd(cli_help)
 	bot.add_cmd(cli_send)
 	bot.add_cmd(cli_chat)
 	bot.add_cmd(cli_hello)
 	bot.add_cmd(cli_remove)
+	bot.add_cmd(cli_whoami)
 	bot.add_cmd(cli_connect)
 	#bot.add_cmd(cli_listen)
 	bot.add_cmd(cli_status)
 	bot.add_cmd(cli_roster)
 	bot.add_cmd(xmpp_acro)
+
 
 	bot.add_cmd(xmpp_hello)
 	bot.add_cmd(xmpp_help)

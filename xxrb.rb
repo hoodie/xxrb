@@ -3,39 +3,44 @@ require 'xmpp4r'
 require 'xmpp4r/roster/helper/roster'
 require 'yaml'
 require 'rbcmd'
+require 'xep49-storer'
 include Jabber
 
 
 class Xxrb
 
-	attr_writer :cli_fallback, :xmpp_fallback
-	attr_reader :cli_fallback, :xmpp_fallback, :cli_cmds, :xmpp_cmds
+	attr :cli_fallback, :xmpp_fallback
+	attr_reader :connected, :cli_cmds, :xmpp_cmds, :storer, :client
 
 	def initialize
 		@cli_cmds  = {}
 		@xmpp_cmds = {}
+		@connected = false
+
+		#@storer = XEP49.new(self)
 
 		if File.exists?('config.yml')
 			file = File.open('config.yml')
-			conf = YAML::load(file)
+			@config = YAML::load(file)
 			file.close
 
-			@jid = conf['account']['jid']
-			@password = conf['account']['password']
-			@autoauthorize = conf['options']['autoauthorize']
-			@autologin = conf['options']['autologin']
+			@jid = @config['account']['jid']
+			@password = @config['account']['password']
+			@autoauthorize = @config['options']['autoauthorize']
 
-			@cli_fallback = lambda { |command, args| puts command + ' is not a command'  }
-			@xmpp_fallback = lambda { |command, args| puts command + ' is not a command'  }
+			@cli_fallback = lambda { |command, args, jid|  command + ' is not a command'  }
+			@xmpp_fallback = lambda { |command, args, jid| command + ' is not a command'  }
 
 		else
 			puts "Error: no config file"
 			Thread.current.exit
 		end
 		
-		if @autologin
-			connect
-			status(conf['options']['defaultstatus'])
+		if @config['options']['autologin']
+			puts connect(@jid,@password)
+			puts status(@config['defaults']['status'])
+			puts start_xmpp_interface
+			puts "\n"
 		end
 	end
 
@@ -45,9 +50,6 @@ class Xxrb
 		@roster_string
 	end
 
-	def connected
-		@connected || false
-	end
 	# End of getters
 
 
@@ -92,16 +94,16 @@ class Xxrb
 
 
 	# Parse commandline input and deligate to either xmpp_cmds or cli_cmds
-	def take_cmd(pool, line)
+	def take_cmd(pool, line, jid = nil)
 		command, args = line.split(' ', 2) unless line.nil? 
 		if command	
 			unless pool[command.to_sym] == nil
-				action = lambda { pool[command.to_sym].execute(args) }
+				action = lambda { pool[command.to_sym].execute(args, jid) }
 			else
 				if pool == @cli_cmds
-					action = lambda{ @cli_fallback.call(command, args) }
+					action = lambda{ @cli_fallback.call(command, args, jid) }
 				else
-					action = lambda{ @xmpp_fallback.call(command, args) }
+					action = lambda{ @xmpp_fallback.call(command, args, jid) }
 				end
 			end
 		else
@@ -109,6 +111,7 @@ class Xxrb
 		end
 		action
 	end
+
 
 	
 	# Begin responding to commandline input
@@ -119,7 +122,7 @@ class Xxrb
 			line = gets.strip!
 
 			quit = true if line == 'quit'
-			action = take_cmd(@cli_cmds, line)
+			action = take_cmd(@cli_cmds, line, @jid)
 			unless quit
 				output = action.call
 				puts output unless output.nil?
@@ -127,36 +130,43 @@ class Xxrb
 		end
 	end
 
+
 	
 	# Begin responding to xmpp input
 	def start_xmpp_interface
 		if @client
 			@client.add_message_callback { |message|
 				unless message.type == :error
-					puts message.from.to_s+": \""+message.body.strip+"\""
-					action = take_cmd(@xmpp_cmds, message.body.strip)
+					puts message.from.to_s + ": \""+message.body.strip+"\""
+					action = take_cmd(@xmpp_cmds, message.body.strip, message.from)
 					output = action.call.to_s
 					res = Message.new(message.from, output)
 					res.type = message.type
 					@client.send(res)
 				end
 			}
-			@client.add_iq_callback { |iq|
-				puts iq
-			}
+			@client.add_iq_callback(0,'puts') { |iq| iq_dispatch(iq) }
 			result = " > listening for commands from xmpp"
 		else
 			result = " > not yet connected, please connect first"
 		end
 	end
 
+	def iq_dispatch(iq)
+		#iq.root.elements.each('//user') { |e| e.to_s }
+		puts ">>> " + iq.to_s
+	end
+
+
+
 	# Begin of XMPP Functions
+
 
 	# Connect either to given jid or to jid from config
 	def connect(jid = nil, password = nil)
-		unless jid.nil? and password.nil?
+		unless jid.nil? or password.nil?
 			@jid, @password = JID.new(jid), password
-			@jid.resource=("xxrb") unless @jid.resource
+			@jid.resource=(@config['defaults']['resource']) unless @jid.resource
 			@client = Client.new(@jid)
 			@client.connect
 			@client.auth(@password)
@@ -165,11 +175,20 @@ class Xxrb
 			get_roster
 			accept_subscribers
 			@connected = true
+			result = " > connected to "+ @jid.domain
 		else
 			connect(@jid, @password)
 		end
-		result = " > connected to "+ @jid.domain
 	end
+
+	def exec(stanza)
+		if @connected
+			@client.send(stanza)
+		else
+			puts "not connected"
+		end
+	end
+
 
 	def accept_subscribers
 		@roster.add_subscription_request_callback do |item, presence|
@@ -188,6 +207,7 @@ class Xxrb
 		end
 	end
 
+
 	
 	# sends a message to a recipient either as type (:chat, :groupchat, :headline, :normal )
 	def send(type, recipient)
@@ -198,15 +218,16 @@ class Xxrb
 	end
 
 
+
 	# initializes roster
 	def init_roster
 		if @client
 			@roster = Jabber::Roster::Helper.new(@client)
-			rosterthread = Thread.current
-			@roster.add_query_callback do |iq|
-				rosterthread.wakeup
-			end
-			Thread.stop
+#			rosterthread = Thread.current
+#			@roster.add_query_callback do |iq|
+#				rosterthread.wakeup
+#			end
+#			Thread.stop
 		end
 	end
 
@@ -236,6 +257,8 @@ class Xxrb
 		@roster_string
 	end
 
+
+
 	# TODO does not return status correctly
 	def status(message = nil)
 		if @client and message
@@ -251,8 +274,9 @@ class Xxrb
 		end
 	end
 
+
 	# removes jid subscription
-	def remove (jid)
+	def unsubscribe(jid)
 		jid = JID.new(jid.strip)
 
 		deletees = @roster.find(jid)
@@ -264,5 +288,9 @@ class Xxrb
 			puts jid.to_s + ' not found'
 		end
 	end
+
+
+	
+
 
 end

@@ -21,7 +21,8 @@ class RbCmd
 		result = @bot
 	end
 
-	def execute(args)
+	def execute(args, jid)
+		@jid = jid
 		@args = args
 		result = action
 	end

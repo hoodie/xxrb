@@ -1,10 +1,22 @@
+Security:
+ * restrict storage to arbritrary number of bytes
+ * escape xml 
+
+
 Options:
  * auto autorization (true/false)
  * config file (yaml)
  * capabilities
 
 Functions:
+ * ad hoc commands
  * rss listener
  * save per user options within notes
  * pass commands as args
  * Joining and bookmarking MUCs
+
+Under the hood:
+ * replace JSON with something much smaller
+ * general iq_callback that delivers back to exec()
+ * stop adding new todos and start handling some of them
+ * iq_callbacks with references
