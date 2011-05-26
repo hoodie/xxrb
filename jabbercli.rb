@@ -100,7 +100,7 @@ require 'uri'
 	def cli_chat.action
 		if @bot.connected
 			if(@args)
-				@bot.startsession(@args,:chat)
+				@bot.send(:chat, @args)
 			else
 				" > no recipient"
 			end
