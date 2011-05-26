@@ -231,6 +231,7 @@ bot = Xxrb.new
 
 
 	bot.add_cmd(xmpp_hello)
+	bot.add_cmd(xmpp_thanks)
 	bot.add_cmd(xmpp_help)
 	bot.add_cmd(xmpp_dvb)
 
