@@ -170,6 +170,10 @@ require 'uri'
 		@bot.unsubscribe(@args)
 	end
   
+	xmpp_thanks =  RbCmd.new(:danke, :xmpp)
+	def xmpp_thanks.action
+    "bitte " + @args
+	end
 
   xmpp_acro = RbCmd.new(:acro, :xmpp)
   def xmpp_acro.action
